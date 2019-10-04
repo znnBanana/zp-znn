@@ -1,0 +1,450 @@
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>用户管理</title>
+<!-- <link rel="stylesheet" href="../bootstrap/css/bootstrap.css">
+<link href="https://cdn.bootcss.com/font-awesome/5.10.2/css/all.css" rel="stylesheet">
+<script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+<script type="text/javascript" src="../bootstrap/js/bootstrap.js"></script> -->
+    
+<!-- <style>
+    .modal-backdrop{
+        z-index: -10;
+    } -->
+</style>
+<div class="user">
+    <ul class="nav nav-tabs" id="myTab" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="true">用户列表</a>
+        </li>
+        <div>
+            <!-- 发布职位 -->
+            <div class="post_jobs btn">
+                <form>
+                    <div id="add_user" class="btn bg-warning"><i class="fa fa-info-circle"></i> 添加用户</div>
+                </form>
+            </div>   
+            <!-- 导入职位 -->
+            <div class="import_jobs btn">
+                <form>
+                    <div id="import" class="btn bg-info"><i class="fa fa-info-circle"></i> 导入用户</div>
+                </form>
+            </div>
+        </div>
+    </ul>
+    <!-- 卡片内容 -->
+    <div class="card-body">
+        <div class="select_area">
+            <!-- 学历 -->
+            <div class="education btn col-2">
+                <form>
+                    <select id="search_education" class="form-control" style="border-radius:3px;">
+                        <option style="display: none;">请选择学历</option>
+                    </select>
+                </form>                   
+            </div>  
+            <!-- 性别 -->
+            <div class="gender btn col-2">
+                <form>
+                    <select id="search_gender" class="form-control" style="border-radius:3px;">
+                        <option style="display: none;">请选择性别</option>
+                    </select>
+                </form>                   
+            </div>    
+            <!-- 还原 -->
+            <div class="scale btn col-1">
+                <form>
+                    <div id="recover" class="btn bg-dark text-white">还原</div>
+                </form>                   
+            </div>                  
+        </div>
+        <!-- 表格 -->
+        <table id="user_tbl" class="table table-hover">
+            <thead>
+                <tr class="text-center bg-dark text-white">
+                    <th>#</th>
+                    <th>用户名</th>
+                    <th>真实姓名</th>
+                    <th>联系方式</th>
+                    <th>性别</th>
+                    <th>出生年月</th>
+                    <th>最高学历</th>
+                    <th>详情</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>                   
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    var Myid;
+    var baseURL = "http://203.195.246.58:7777/";
+    // ===================初始化数据=================
+    function reloadData(){
+        var url = baseURL+"/Jobhunter/findAll";
+        $.get(url,function(result){
+            // console.log(result.data);
+            $("#user_tbl > tbody").empty();
+            result.data.forEach(function(item){
+                $("#user_tbl > tbody").append(`<tr class="text-center">
+                    <td>
+                        <input type="checkbox" value="`+item.id+`">
+                    </td>
+                    <td>`+item.username+`</td>
+                    <td>`+item.realname+`</td>
+                    <td>`+item.telephone+`</td>
+                    <td>`+item.gender+`</td>
+                    <td>`+item.birth+`</td>
+                    <td>`+item.education+`</td>
+                    <td>
+                        <a class="btn_view" href="javascript:void(0)">查看</a>
+                    </td>
+                    <td>
+                        <a class="btn_del" href="javascript:void(0)">删除</a>
+                        <a class="btn_upd" href="javascript:void(0)">修改</a>
+                    </td>
+                </tr>`)
+            })
+        })
+    }
+    reloadData();
+
+    // ====================关闭模态框==================
+    function closeModal(){
+        // console.log($(this));
+        $(this).parents(".modal").modal("hide");
+    }
+    closeModal();
+
+    $(function(){
+        // ==============获取后台学历以及性别放入下拉框中================
+        function search_user(){
+            var url = baseURL+"/Jobhunter/findAll";
+            $.get(url,function(result){
+                // console.log(result.data);
+                result.data.forEach(function(item){
+                    $("#search_education").append(`<option value="`+item.education+`">`+item.education+`</option>`);
+                    $("#search_gender").append(`<option value="`+item.gender+`">`+item.gender+`</option>`);
+                })
+            })
+        }
+        search_user();
+
+        // ====================通过学历获取用户信息=================
+        $("#search_education").on("click","option",function(){
+            var url = baseURL+"/Jobhunter/findByEducation";
+            var education = $(this).val();
+            var data = "education="+education;
+            $.get(url,data,function(result){
+                $("#user_tbl > tbody").empty();
+                // console.log(result.data);
+                result.data.forEach(function(item){
+                    // 把值追加到tbody中
+                    $("#user_tbl > tbody").append(`<tr class="text-center">
+                        <td>
+                            <input type="checkbox" value="`+item.id+`">
+                        </td>
+                        <td>`+item.username+`</td>
+                        <td>`+item.realname+`</td>
+                        <td>`+item.telephone+`</td>
+                        <td>`+item.gender+`</td>
+                        <td>`+item.birth+`</td>
+                        <td>`+item.education+`</td>
+                        <td>
+                            <a class="btn_del" href="javascript:void(0)">删除</a>
+                            <a class="btn_upd" href="javascript:void(0)">修改</a>
+                        </td>
+                    </tr>`)
+                })
+            })
+        })
+
+        // ==================通过性别获取用户信息===============
+        $("#search_gender").on("click","option",function(){
+            var url = baseURL+"/Jobhunter/findByGender";
+            var gender = $(this).val();
+            var data = "gender="+gender;
+            $.get(url,data,function(result){
+                $("#user_tbl > tbody").empty();
+                // console.log(result.data);
+                result.data.forEach(function(item){
+                    $("#user_tbl > tbody").append(`<tr class="text-center">
+                        <td>
+                            <input type="checkbox" value="`+item.id+`">
+                        </td>
+                        <td>`+item.username+`</td>
+                        <td>`+item.realname+`</td>
+                        <td>`+item.telephone+`</td>
+                        <td>`+item.gender+`</td>
+                        <td>`+item.birth+`</td>
+                        <td>`+item.education+`</td>
+                        <td>
+                            <a class="btn_del" href="javascript:void(0)">删除</a>
+                            <a class="btn_upd" href="javascript:void(0)">修改</a>
+                        </td>
+                    </tr>`)
+                })
+            })
+        })
+
+        // ===============还原按钮=============
+        $("#recover").on("click",function(){
+            reloadData();
+        })
+
+        // ================模态框事件=================       
+        // 点击添加，弹出模态框
+        $("#add_user").on("click",function(){
+            $("#modal_add_user").modal("show");
+        })
+        // 点击查看，弹出模态框
+        $("#user_tbl > tbody").on("click","a",function(){
+            if(this.className == "btn_view"){
+                $("#modal_details_user").modal("show");
+            }           
+        })
+
+        // 监听模态框的关闭
+        $("#modal_add_user").on("hidden.bs.modal",function(){
+            $(this).find("form")[0].reset();
+        })
+        // 关闭详情模态框，清除数据
+        $("#closeModal").on("click",function(){
+            // console.log($("#details_md"))
+            // alert(1);
+            $(".details_md").empty();
+        })
+
+        // ==================删除与修改================
+        $("#user_tbl > tbody").on("click","a",function(){
+            if(this.className == "btn_del"){
+                // alert("删除");
+                var url = baseURL+"/Jobhunter/deleteById";
+                var id = $(this).parents("tr").find("td:nth-child(1)").find("input").val();
+                var data = "id="+id;
+                $.post(url,data,function(result){
+                    if(result.status === 200){
+                        alert(result.message);
+                        reloadData();
+                    }else{
+                        alert("删除接口异常");
+                    }
+                })
+            }else if(this.className == "btn_upd"){
+                // alert("修改");
+                // 获取到表格中的值
+                Myid = $(this).parents("tr").find("td:nth-child(1)").find("input").val();
+                var username = $(this).parents("tr").find("td:nth-child(2)").text();
+                var realname = $(this).parents("tr").find("td:nth-child(3)").text();
+                var telephone = $(this).parents("tr").find("td:nth-child(4)").text();
+                var gender = $(this).parents("tr").find("td:nth-child(3)").text();
+                var birth = $(this).parents("tr").find("td:nth-child(3)").text();
+                var education = $(this).parents("tr").find("td:nth-child(3)").text();
+                // console.log(username);
+
+                // 从后台获取数据，追加到模态框
+                var url = baseURL+"/Jobhunter/findById";
+                    var data = "id="+Myid;
+                    $.get(url,data,function(result){
+                        $("#user_form").empty();
+                        console.log(result.data);
+                        // 追加到详情模态框中
+                        $("#user_form").append(`
+                            <div class="form-group row">
+                                <label for="input_username" class="col-sm-2 text-right">* 用户名：</label>
+                                <div class="col-sm-10">
+                                    <input id="input_username" class="form-control" value="`+result.data.username+`" type="text" name="username" placeholder="请输入用户名">
+                                </div>
+                            </div>
+
+                            <div class="form-group row">
+                                <label for="input_realname" class="col-sm-2 text-right">* 真实姓名：</label>
+                                <div class="col-sm-10">
+                                    <input id="input_realname" class="form-control" value="`+result.data.realname+`" type="text" name="realname" placeholder="请输入真实姓名">
+                                </div>
+                            </div>
+
+                            <div class="form-group row">
+                                <label class="col-sm-2 text-right" for="input_telephone">* 手机号：</label>
+                                <div class="col-sm-10">
+                                    <input id="input_telephone" class="form-control" value="`+result.data.telephone+`" type="text" name="telephone" placeholder="请输入用户手机号">
+                                </div>
+                            </div>
+
+                            <div class="form-group row">
+                                <label class="col-sm-2 text-right" for="input_gender">* 性别：</label>
+                                <div class="col-sm-10">
+                                    <input id="input_gender" class="form-control" value="`+result.data.gender+`" type="text" name="gender" placeholder="请输入性别">
+                                </div>
+                            </div>
+
+                            <div class="form-group row">
+                                <label class="col-sm-2 text-right" for="input_birth">* 出生年月：</label>
+                                <div class="col-sm-10">
+                                    <input id="input_birth" class="form-control" value="`+result.data.birth+`" type="text" name="birth" placeholder="请输入出生年月">
+                                </div>
+                            </div>
+
+                            <div class="form-group row">
+                                <label class="col-sm-2 text-right" for="input_education">* 最高学历：</label>
+                                <div class="col-sm-10">
+                                    <input id="input_education" class="form-control" value="`+result.data.education+`" type="text" name="education" placeholder="请输入最高学历">
+                                </div>
+                            </div>
+
+                            <div class="form-group row">
+                                <label class="col-sm-2 text-right" for="input_currentStatus">* 求职状态：</label>
+                                <div class="col-sm-10">
+                                    <input id="input_currentStatus" class="form-control" value="`+result.data.currentStatus+`" type="text" name="currentStatus" placeholder="请输入求职状态">
+                                </div>
+                            </div>
+
+                            <div class="form-group row">
+                                <label class="col-sm-2 text-right" for="input_password">* 密码：</label>
+                                <div class="col-sm-10">
+                                    <input id="input_password" class="form-control" value="`+result.data.password+`" type="password" name="password" placeholder="请输入密码">
+                                </div>
+                            </div>
+
+                            <div class="form-group row">
+                                <label class="col-sm-2 text-right" for="input_workTime">* 工作时间：</label>
+                                <div class="col-sm-10">
+                                    <input id="input_workTime" class="form-control" value="`+result.data.workTime+`" type="text" name="workTime" placeholder="请输入工作时间">
+                                </div>
+                            </div>
+
+                            <div class="form-group row">
+                                <label class="col-sm-2 text-right" for="input_resume">* 简历：</label>
+                                <div class="col-sm-10">
+                                    <input id="input_resume" class="form-control" value="`+result.data.resume+`" type="textarea" name="resume" placeholder="请输入简历">
+                                </div>
+                            </div>
+                        `)
+                    })
+                // 将获取到的值放到模态框里
+                // $("#input_username").val(username);
+                // $("#input_realname").val(realname);
+                // $("#input_telephone").val(telephone);
+                // $("#input_gender").val(gender);
+                // $("#input_birth").val(birth);
+                // $("#input_education").val(education);
+
+                $("#modal_add_user").modal("show");
+                reloadData();
+            }
+        })
+
+        // =============查看详情===========
+        var url = baseURL+"/Jobhunter/findById";
+        $("#user_tbl > tbody").on("click","a",function(){
+            if(this.className == "btn_view"){
+                var id = $(this).parents("tr").find("td:nth-child(1)").find("input").val();
+                var data = "id="+id;
+                $.get(url,data,function(result){
+                    // console.log(result.data);
+                    // 追加到详情模态框中
+                    $(".details_md").append(`
+                        <div class="form-group row">
+                            <label for="input_username" class="col-sm-2 text-right">* 用户名：</label>
+                            <div class="col-sm-10">
+                                <p id="details_username">`+result.data.username+`</p>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="input_realname" class="col-sm-2 text-right">* 真实姓名：</label>
+                            <div class="col-sm-10">
+                                <p id="details_realname">`+result.data.realname+`</p>
+                            </div>
+                        </div>
+
+                        <div class="form-group row border-bottom">
+                            <label class="col-sm-2 text-right" for="input_password">* 密码：</label>
+                            <div class="col-sm-10">
+                                <p id="details_password">`+result.data.password+`</p>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label class="col-sm-2 text-right" for="input_currentStatus">* 求职状态：</label>
+                            <div class="col-sm-10">
+                                <p id="details_currentStatus">`+result.data.currentStatus+`</p>
+                            </div>
+                        </div>
+
+                        <div class="form-group row border-bottom">
+                            <label class="col-sm-2 text-right" for="input_workTime">* 工作时间：</label>
+                            <div class="col-sm-10">
+                                <p id="details_workTime">`+result.data.workTime+`</p>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label class="col-sm-2 text-right" for="input_resume">* 简历：</label>
+                            <div class="col-sm-10">
+                                <p id="details_resume">`+result.data.resume+`</p>
+                            </div>
+                        </div>`)
+                })
+            }
+        })
+
+
+    })
+
+// =================保存与修改===============
+function submitUser(){
+    // alert(1);
+    var url = baseURL+"/Jobhunter/saveOrUpdate";
+    // 获取模态框里的值
+    var username = $("#input_username").val();
+    var realname = $("#input_realname").val();
+    var telephone = $("#input_telephone").val();
+    var gender = $("#input_gender").val();
+    var birth = $("#input_birth").val();
+    var education = $("#input_education").val();
+    var currentStatus = $("#input_currentStatus").val();
+    var password = $("#input_password").val();
+    var workTime = $("#input_workTime").val();
+    var resume = $("#input_resume").val();
+    if(Myid){
+        var data = {
+            id:Myid,
+            username:username,
+            realname:realname,
+            telephone:telephone,
+            gender:gender,
+            birth:birth,
+            education:education,
+            currentStatus:currentStatus,
+            password:password,
+            workTime:workTime,
+            resume:resume
+        }
+    }else{
+        var data = {
+            username:username,
+            realname:realname,
+            telephone:telephone,
+            gender:gender,
+            birth:birth,
+            education:education,
+            currentStatus:currentStatus,
+            password:password,
+            workTime:workTime,
+            resume:resume
+        }
+    }   
+    $.post(url,data,function(result){
+        if(result.status === 200){
+            $("#modal_add_user").modal("hide");
+            reloadData();
+        }else{
+            alert("保存接口异常");
+        }
+    })
+}
+submitUser();
+        
+</script>

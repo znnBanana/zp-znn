@@ -1,0 +1,620 @@
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>商家管理</title>
+<!-- <link rel="stylesheet" href="../bootstrap/css/bootstrap.css">
+<script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+<script type="text/javascript" src="../bootstrap/js/bootstrap.js"></script> -->
+
+<div class="business">
+    <div class="card" style="padding: 0;">
+        <!-- 卡片头 -->
+        <div class="card-header">
+            <ul class="nav nav-tabs card-header-tabs">
+                <li class="nav-item">
+                    <a class="nav-link active" href="#">商家列表</a>
+                </li>
+            </ul>
+        </div>
+        <!-- 卡片内容 -->
+        <div class="card-body">
+            <div class="select_area">
+                <!-- id -->
+                <div class="id btn col-2">
+                    <form>
+                        <select id="search_province" class="form-control" style="border-radius:3px;">
+                            <option style="display: none;">省份</option>
+                        </select>
+                    </form>                   
+                </div>  
+                <!-- 城市 -->
+                <div class="location btn col-2">
+                    <form>
+                        <select id="search_city" class="form-control" style="border-radius:3px;">
+                            <option style="display: none;">城市</option>
+                        </select>
+                    </form>                   
+                </div>    
+                <!-- 行业 -->
+                <div class="industry btn col-2">
+                    <form>
+                        <select id="search_industry" class="form-control" style="border-radius:3px;">
+                            <option style="display: none;">请选择行业</option>
+                        </select>
+                    </form>                   
+                </div>  
+                <!-- 规模 -->
+                <div class="scale btn col-2">
+                    <form>
+                        <select id="search_scale" class="form-control" style="border-radius:3px;">
+                            <option style="display: none;">请选择规模</option>
+                        </select>
+                    </form>                   
+                </div>   
+                <!-- 还原 -->
+                <div class="scale btn col-1">
+                    <form>
+                        <div id="recover" class="btn bg-dark text-white">还原</div>
+                    </form>                   
+                </div>
+                <!-- 删除 -->
+                <div class="scale btn col-1">
+                    <form>
+                        <div id="add" class="btn bg-dark text-white">添加</div>
+                    </form>                   
+                </div>     
+            </div>
+            <!-- 表格 -->
+            <table id="business_tbl" class="table table-hover">
+                <thead>
+                    <tr class="text-center bg-dark text-white">
+                        <th>#</th>
+                        <th>企业名称</th>
+                        <th>联系人</th>
+                        <th>联系方式</th>
+                        <th>行业</th>
+                        <th>省份</th>
+                        <th>城市</th>
+                        <th>所在地</th>
+                        <th>公司规模</th>
+                        <th>详情</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    var Myid;   
+    var baseURL = "http://203.195.246.58:7777/";
+    // ===============初始化数据==============
+    function reloadData(){
+        var url = baseURL+"/Business/findAll";
+        $.get(url,function(result){
+            $("#business_tbl > tbody").empty();
+            result.data.forEach(function(item){
+                
+                $("#business_tbl > tbody").append(`<tr class="text-center">
+                    <td>
+                        <input type="checkbox" value="`+item.id+`">
+                    </td>
+                    <td>`+item.name+`</td>
+                    <td>`+item.contactName+`</td>
+                    <td>`+item.contactPhone+`</td>
+                    <td>`+item.industry+`</td>
+                    <td>`+item.province+`</td>
+                    <td>`+item.city+`</td>
+                    <td>`+item.location+`</td>
+                    <td>`+item.scale+`</td>
+                    <td>
+                        <a class="btn_view" href="javascript:void(0)">查看</a>
+                    </td>
+                    <td>
+                        <a class="btn_del" href="javascript:void(0)">删除</a>
+                        <a class="btn_upd" href="javascript:void(0)">修改</a>
+                    </td>
+                </tr>`)
+            })
+        })       
+    }
+    reloadData();
+
+    // ================隐藏模态框============
+    function closeModal(){
+        // console.log($(this));
+        $(this).parents(".modal").modal("hide");
+    }
+    closeModal();
+
+    // ==============模态框事件=============
+    $(function(){
+        // 添加时，弹出模态框
+        $("#add").on("click",function(){
+            $("#modal_add_business").modal("show");
+        })
+        // 点击详情，弹出模态框
+        $("#business_tbl > tbody").on("click","a",function(){
+            if(this.className == "btn_view"){
+                $("#modal_details_business").modal("show");
+            }
+        })
+        // 关闭添加模态框，清除数据
+        $("#modal_add_business").on("hidden.bs.modal",function(){
+            $(this).find("form")[0].reset();
+        })
+        // 关闭详情模态框，清除数据
+        $("#closeModal").on("click",function(){
+            console.log($("#details_md"))
+            $(".details_md form").empty();
+        })
+
+    })
+
+    // ==============还原数据============
+    $(function(){
+        $("#recover").on("click",function(){
+            reloadData();
+        })
+    })
+
+    // ==============获取后台的省份，城市，行业，以及规模放入下拉列表中==============
+    function serach_business(){
+        var url = baseURL+"/Business/findAll";
+        $.get(url,function(result){
+            // console.log(result.data);
+            result.data.forEach(function(item){
+                $("#search_industry").append(`<option value="`+item.industry+`">`+item.industry+`</option>`);
+                $("#search_scale").append(`<option value="`+item.scale+`">`+item.scale+`</option>`);
+            })
+        })
+    }
+    serach_business();  
+
+    function serach_city(){
+        var url = baseURL+"/City/findAll";
+        $.get(url,function(result){
+            // console.log(result.data);
+            result.data.forEach(function(item){               
+                $("#search_city").append(`<option>`+item.name+`</option>`);
+            })
+        })
+    }
+    serach_city();
+
+    function serach_province(){
+        var url = baseURL+"/Province/findAll";
+        $.get(url,function(result){
+            // console.log(result.data);
+            result.data.forEach(function(item){               
+                $("#search_province").append(`<option>`+item.name+`</option>`);
+            })
+        })
+    }
+    serach_province();
+
+    // ==============获取后台省份，城市放在模态框中==========
+    function modal_province(){
+        var url = baseURL+"/Province/findAll";
+        $.get(url,function(result){
+            // console.log(result.data,"modal_province")
+            result.data.forEach(function(item){     
+                // console.log(item.name,"city");
+                $("#select_province").append(`<option>`+item.name+`</option>`);
+            })
+        })
+    }
+    modal_province();
+
+    function modal_city(){
+        var url = baseURL+"/City/findAll";
+        $.get(url,function(result){
+            result.data.forEach(function(item){     
+                // console.log(item.name,"city");
+                $("#select_city").append(`<option>`+item.name+`</option>`);
+            })
+        })
+    }
+    modal_city();
+
+    function modal_status(){
+        var url = baseURL+"/Business/findAll";
+        $.get(url,function(result){
+            // console.log(result.data);
+            result.data.forEach(function(item){
+                $("#select_status").append(`<option>`+item.status+`</option>`);
+            })
+        })
+    }
+    modal_status();
+   
+    // ==============根据省份查找商家===============
+    $(function(){
+        $("#search_province").on("click","option",function(){
+            var province = $(this).text();
+            var url = baseURL+"/Business/findByProvince";
+            var data = "province="+province;
+            $.get(url,data,function(result){
+                $("#business_tbl > tbody").empty();
+                result.data.forEach(function(item){
+                    $("#business_tbl > tbody").append(`<tr class="text-center">
+                        <td>
+                            <input type="checkbox" value="`+item.id+`">
+                        </td>
+                        <td>`+item.name+`</td>
+                        <td>`+item.contactName+`</td>
+                        <td>`+item.contactPhone+`</td>
+                        <td>`+item.industry+`</td>
+                        <td>`+item.province+`</td>
+                        <td>`+item.city+`</td>
+                        <td>`+item.location+`</td>
+                        <td>`+item.scale+`</td>
+                        <td>
+                            <a class="btn_view" href="javascript:void(0)">查看</a>
+                        </td>
+                        <td>
+                            <a class="btn_del" href="javascript:void(0)">删除</a>
+                            <a class="btn_upd" href="javascript:void(0)">修改</a>
+                        </td>
+                    </tr>`)
+                })
+                    
+            })
+        })
+        reloadData();
+    })
+
+    // ==============根据城市查找商家===============
+    $(function(){
+        $("#search_city").on("click","option",function(){
+            var city = $(this).text();
+            var data = "city="+city;
+            var url = baseURL+"/Business/findByCity";
+            $.get(url,data,function(result){
+                $("#business_tbl > tbody").empty();                
+                result.data.forEach(function(item){
+                    $("#business_tbl > tbody").append(`<tr class="text-center">
+                        <td>
+                            <input type="checkbox" value="`+item.id+`">
+                        </td>
+                        <td>`+item.name+`</td>
+                        <td>`+item.contactName+`</td>
+                        <td>`+item.contactPhone+`</td>
+                        <td>`+item.industry+`</td>
+                        <td>`+item.province+`</td>
+                        <td>`+item.city+`</td>
+                        <td>`+item.location+`</td>
+                        <td>`+item.scale+`</td>
+                        <td>
+                            <a class="btn_view" href="javascript:void(0)">查看</a>
+                        </td>
+                        <td>
+                            <a class="btn_del" href="javascript:void(0)">删除</a>
+                            <a class="btn_upd" href="javascript:void(0)">修改</a>
+                        </td>
+                    </tr>`)
+                })               
+            })
+        })
+        reloadData();
+    })
+
+    // ==============根据行业查找商家===============
+    $(function(){
+        $("#search_industry").on("click","option",function(){
+            var industry = $(this).val();
+            var data = "industry="+industry;
+            var url = baseURL+"/Business/findByIndustry";
+            $.get(url,data,function(result){
+                // console.log(result.data);
+                $("#business_tbl > tbody").empty();
+                result.data.forEach(function(item){
+                    $("#business_tbl > tbody").append(`<tr class="text-center">
+                        <td>
+                            <input type="checkbox" value="`+item.id+`">
+                        </td>
+                        <td>`+item.name+`</td>
+                        <td>`+item.contactName+`</td>
+                        <td>`+item.contactPhone+`</td>
+                        <td>`+item.industry+`</td>
+                        <td>`+item.province+`</td>
+                        <td>`+item.city+`</td>
+                        <td>`+item.location+`</td>
+                        <td>`+item.scale+`</td>
+                        <td>
+                            <a class="btn_view" href="javascript:void(0)">查看</a>
+                        </td>
+                        <td>
+                            <a class="btn_del" href="javascript:void(0)">删除</a>
+                            <a class="btn_upd" href="javascript:void(0)">修改</a>
+                        </td>
+                    </tr>`)
+                })
+            })
+        })
+    })
+
+    // ==============根据规模查找商家===============
+    $(function(){
+        $("#search_scale").on("click","option",function(){
+            var scale = $(this).val();
+            var data = "scale="+scale;
+            var url = baseURL+"/Business/findByScale";
+            $.get(url,data,function(result){
+                // console.log(result.data);
+                $("#business_tbl > tbody").empty();
+                result.data.forEach(function(item){
+                    $("#business_tbl > tbody").append(`<tr class="text-center">
+                        <td>
+                            <input type="checkbox" value="`+item.id+`">
+                        </td>
+                        <td>`+item.name+`</td>
+                        <td>`+item.contactName+`</td>
+                        <td>`+item.contactPhone+`</td>
+                        <td>`+item.industry+`</td>
+                        <td>`+item.province+`</td>
+                        <td>`+item.city+`</td>
+                        <td>`+item.location+`</td>
+                        <td>`+item.scale+`</td>
+                        <td>
+                            <a class="btn_view" href="javascript:void(0)">查看</a>
+                        </td>
+                        <td>
+                            <a class="btn_del" href="javascript:void(0)">删除</a>
+                            <a class="btn_upd" href="javascript:void(0)">修改</a>
+                        </td>
+                    </tr>`)
+                })
+            })
+        })
+    })
+
+    // =================删除与修改=================
+    $(function(){
+        $("#business_tbl > tbody").on("click","a",function(){
+            var url = baseURL+"/Business/deleteById";
+            if(this.className == "btn_del"){
+                // alert("删除");
+                var id = $(this).parents("tr").find("td:nth-child(1)").find("input").val();
+                var data = "id="+id;
+                $.post(url,data,function(result){
+                    if(result.status === 200){
+                        alert(result.message);
+                        reloadData();
+                    }else{
+                        alert("删除接口异常");
+                    }
+                })
+            }else if(this.className == "btn_upd"){
+                // alert("修改");
+                // console.log($(this));
+                
+                Myid = $(this).parents("tr").find("td:nth-child(1)").find("input").val();
+
+                // 直接获取后台详情数据               
+                var url = baseURL+"/Business/findById";
+                var data = "id="+Myid;
+                $.get(url,data,function(result){
+                    $("#business_form").empty();
+                    // console.log(result.data);
+                    // establishedTime = result.data.establishedTime;
+                    var newTr = $(`
+                        <div class="form-group row">
+                            <label for="input_name" class="col-sm-2 text-right">* 企业名称：</label>
+                            <div class="col-sm-4">
+                                <input id="input_name" class="form-control" value="`+result.data.name+`" type="text" name="name" placeholder="请输入企业名称">
+                            </div>
+                            <label for="input_industry" class="col-sm-2 text-right">* 行业：</label>
+                            <div class="col-sm-4">
+                                <input id="input_industry" class="form-control" value="`+result.data.industry+`" type="text" name="industry" placeholder="请输入行业类型">
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="select_scale" class="col-sm-2 text-right">* 公司规模：</label>
+                            <div class="col-sm-4">
+                                <input id="input_scale" class="form-control" value="`+result.data.scale+`" type="text" name="industry" placeholder="请输入公司规模">
+                            </div>
+                            <label for="select_province" class="col-sm-2 text-right">* 所在城市：</label>
+                            <div class="col-sm-2">
+                                <select name="province" id="select_province" class="form-control">
+                                    <option style="display: none;">`+result.data.province+`</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-2">
+                                <select name="cityId" id="select_city" class="form-control">
+                                    <option style="display: none;">`+result.data.city+`</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="input_businessLicense" class="col-sm-2 text-right">* 营业执照：</label>
+                            <div class="col-sm-4">
+                                <input id="input_businessLicense" class="form-control" value="`+result.data.businessLicense+`" type="text" name="businessLicense" placeholder="请输入营业执照">
+                            </div>
+                            <label for="input_location" class="col-sm-2 text-right">* 详细地址：</label>
+                            <div class="col-sm-4">
+                                <input id="input_location" class="form-control" value="`+result.data.location+`" type="text" name="location" placeholder="请输入详细地址">
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="input_contactName" class="col-sm-2 text-right">* 联系人：</label>
+                            <div class="col-sm-4">
+                                <input id="input_contactName" class="form-control" value="`+result.data.contactName+`" type="text" name="contactName" placeholder="请输入联系人姓名">
+                            </div>
+                            <label class="col-sm-2 text-right" for="input_contactPhone">* 联系方式：</label>
+                            <div class="col-sm-4">
+                                <input id="input_contactPhone" class="form-control" value="`+result.data.contactPhone+`" type="text" name="contactPhone" placeholder="请输入您的联系方式">
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="input_establishedTime" class="col-sm-2 text-right">* 成立时间：</label>
+                            <div class="col-sm-4">
+                                <input id="input_establishedTime" class="form-control" value="`+result.data.establishedTime+`" type="text" name="establishedTime" placeholder="请输入成立时间">
+                            </div>
+                            <label for="input_registeredCapital" class="col-sm-2 text-right">* 注册资本：</label>
+                            <div class="col-sm-4">
+                                <input id="input_registeredCapital" class="form-control" value="`+result.data.registeredCapital+`" type="text" name="registeredCapital" placeholder="请输入注册资本">
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="select_status" class="col-sm-2 text-right">* 状态：</label>
+                            <div class="col-sm-10">
+                                <select name="status" id="select_status" class="form-control">
+                                    <option>`+result.data.status+`</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="input_description" class="col-sm-2 text-right">* 公司简介：</label>
+                            <div class="col-sm-10">
+                                <input id="input_description" class="form-control" value="`+result.data.description+`" type="text" name="description" placeholder="请输入公司简介">
+                            </div>
+                        </div>`)
+                    $('#business_form').append(newTr);
+                })
+
+                // 关闭模态框
+                $("#modal_add_business").modal("show");
+                
+                modal_province();
+                modal_city();
+                modal_status();
+                reloadData();
+            }
+            
+        })
+    })
+
+    // ===================保存===============
+    function submitBusiness(){
+        // alert("保存");
+        var url = baseURL+"/Business/saveOrUpdate";
+        // 获取模态框的值
+        var name = $("#input_name").val();
+        var contactName = $("#input_contactName").val();
+        var contactPhone = $("#input_contactPhone").val();
+        var industry = $("#input_industry").val();
+        var location = $("#input_location").val();
+        var scale = $("#input_scale").val();
+        var establishedTime = $("#input_establishedTime").val();
+        var registeredCapital = $("#input_registeredCapital").val();
+        var description = $("#input_description").val();
+        var province = $("#select_province").val();
+        var city = $("#select_city").val();
+        var businessLicense = $("#input_businessLicense").text();
+        var status = $("#select_status").val();
+        // console.log(contactName);
+        if(Myid){
+            var data = {
+                id:Myid,
+                name:name,
+                contactName:contactName,
+                contactPhone:contactPhone,
+                industry:industry,
+                location:location,
+                scale:scale,
+                establishedTime:establishedTime,
+                registeredCapital:registeredCapital,
+                description:description,
+                province:province,
+                city:city,
+                businessLicense:businessLicense,
+                status:status
+            }
+        }else{
+            var data = {
+            name:name,
+            contactName:contactName,
+            contactPhone:contactPhone,
+            industry:industry,
+            location:location,
+            scale:scale,
+            establishedTime:establishedTime,
+            registeredCapital:registeredCapital,
+            description:description,
+            province:province,
+            city:city,
+            businessLicense:businessLicense,
+            status:status
+            }
+        }       
+        console.log(data,'----')
+        $.post(url,data,function(result){
+            if(result.status === 200){
+                $("#modal_add_business").modal("hide");
+                reloadData();
+            }else{
+                alert("保存接口异常");
+            }
+        })
+    }
+    
+    // ================查看详情===============
+    $(function(){
+        reloadData();
+        var url = baseURL+"/Business/findById";
+        $("#business_tbl > tbody").on("click","a",function(){
+            if(this.className == "btn_view"){
+                var id = $(this).parents("tr").find("td:nth-child(1)").find("input").val();
+                var data = "id="+id;
+                $.get(url,data,function(result){
+                    var newTr = $(`
+                        <div class="form-group row">
+                            <div class="ml-5">
+                                <p id="details_name">`+result.data.name+`</p>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="ml-5">
+                                <p id="details_status">`+result.data.status+`</p>
+                            </div>
+                        </div>
+                        <div class="form-group row border-bottom">
+                            <div class="ml-5">
+                                <p id="details_scale" class="">`+result.data.scale+`</p>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="input_contactName" class="col-sm-2 text-right">行业类型：</label>
+                            <div class="col-sm-10">
+                                <p id="details_industry">`+result.data.industry+`</p>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="input_contactName" class="col-sm-2 text-right">成立时间：</label>
+                            <div class="col-sm-10">
+                                <p id="details_establishedTime">`+result.data.establishedTime+`</p>
+                            </div>
+                        </div>
+                        <div class="form-group row border-bottom">
+                            <label for="input_contactName" class="col-sm-2 text-right">注册资本：</label>
+                            <div class="col-sm-10">
+                                <p id="details_registeredCapital" class="">`+result.data.registeredCapital+`</p>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="ml-5">
+                                <p id="details_description">`+result.data.description+`</p>
+                            </div>
+                        </div>
+                    `);
+                    // console.log(newTr,'====');
+                    $('.details_md form').append(newTr);
+                    // $("#details_name").append(`<option value="`+result.data.name+`">`+result.data.name+`</option>`);
+                    // $("#details_status").append(`<option value="`+result.data.status+`">`+result.data.status+`</option>`);
+                    // $("#details_scale").append(`<option value="`+result.data.scale+`">`+result.data.scale+`</option>`);
+                    // $("#details_industry").append(`<option value="`+result.data.industry+`">`+result.data.industry+`</option>`);
+                    // $("#details_establishedTime").append(`<option value="`+result.data.establishedTime+`">`+result.data.establishedTime+`</option>`);
+                    // $("#details_registeredCapital").append(`<option value="`+result.data.registeredCapital+`">`+result.data.registeredCapital+`</option>`);
+                    // $("#details_description").append(`<option value="`+result.data.description+`">`+result.data.description+`</option>`);
+                })
+            }
+        })
+    })
+</script>
